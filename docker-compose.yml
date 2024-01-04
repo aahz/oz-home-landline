@@ -13,7 +13,6 @@ services:
       dockerfile: Dockerfile
       target: base
     volumes:
-      - /dev/modem:/dev/modem
       - ./src:/home/node/app/src
       - ./nodemon.json:/home/node/app/nodemon.json
     command: npm run dev
