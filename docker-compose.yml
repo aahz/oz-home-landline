@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  landline:
+    restart: unless-stopped
+    container_name: landline
+    env_file:
+      - .env.dev
+    ports:
+      - "3000:3000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    volumes:
+      - /dev/modem:/dev/modem
+      - ./src:/home/node/app/src
+      - ./nodemon.json:/home/node/app/nodemon.json
+    command: npm run dev

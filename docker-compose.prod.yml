@@ -1,0 +1,9 @@
+version: '3.7'
+
+services:
+  landline:
+    env_file:
+      - .env.prod
+    build:
+      target: production
+    command: node build/index.js

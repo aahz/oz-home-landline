@@ -1,0 +1,6 @@
+.env.dev
+.env.prod
+
+.idea
+node_modules
+build
