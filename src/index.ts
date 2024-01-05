@@ -63,7 +63,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 			return (
 				modem.send({
 					message: 'ATZ',
-					terminator: 'OK',
+					terminator: 'ATZ',
 				})
 					.then((response) => {
 						console.log(`${lid}: Modem reset`, response.trim());
