@@ -135,6 +135,8 @@ export class Modem {
 			parser.on('data', chunk => {
 				data.push(chunk.trim());
 
+				console.info('chunk', data);
+
 				if (!!packet.terminator) {
 					if (chunk.trim() !== packet.terminator) {
 						return;

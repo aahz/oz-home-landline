@@ -62,7 +62,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					message: 'ATZ',
 					terminator: 'OK',
 				})
-					.then(() => {
+					.then((response) => {
+						console.log('atz', response);
 						return message;
 					})
 			);
@@ -78,7 +79,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 							message: 'AT+FCLASS=8',
 							terminator: 'OK',
 						})
-							.then(() => {
+							.then((response) => {
+								console.log('at+flcass', response);
 								return message;
 							})
 					);
@@ -90,7 +92,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					message: 'ATL1',
 					terminator: 'OK',
 				})
-					.then(() => {
+					.then((response) => {
+						console.log('atl', response);
 						return message;
 					})
 			);
@@ -100,7 +103,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 				modem.send({
 					message: 'ATA',
 				})
-					.then(() => {
+					.then((response) => {
+						console.log('ata', response);
 						return message;
 					})
 			);
@@ -111,7 +115,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					message: 'ATH',
 					terminator: 'OK',
 				})
-					.then(() => {
+					.then((response) => {
+						console.log('ath', response);
 						return message;
 					})
 			);
@@ -127,7 +132,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 							message: 'ATL3',
 							terminator: 'OK',
 						})
-							.then(() => {
+							.then((response) => {
+								console.log('atl', response);
 								return message;
 							})
 					})
@@ -145,7 +151,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 								message: `ATm1x3DT${phoneNumber}`,
 								terminator: 'BUSY',
 							})
-								.then(() => {
+								.then((response) => {
+									console.log('atdt', response);
 									return message;
 								})
 						)
