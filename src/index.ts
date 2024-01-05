@@ -12,7 +12,7 @@ const bot = new Bot({
 const modem = new Modem({
 	path: C.MODEM.PATH,
 	baudRate: C.MODEM.BAUD_RATE,
-	timeout: 1000,
+	timeout: 500,
 });
 
 function sendList(api: Bot['api'], chatId: number): void {
@@ -30,7 +30,7 @@ function sendList(api: Bot['api'], chatId: number): void {
 			}
 		})
 		.then((message) => {
-			console.log(`List sent to ${message.chat.id}.`);
+			console.log(`${Date.now()}: List sent to ${message.chat.id}`);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -51,11 +51,14 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 		return sendList(api, chatId);
 	}
 
-	const phoneNumber = gate.phoneNumbers[Number(data.groups?.phoneNumberIndex || 0)];
+	const lid = Date.now();
+
+	const phoneNumberIndex = Number(data.groups?.phoneNumberIndex || 0);
+	const phoneNumber = gate.phoneNumbers[phoneNumberIndex];
 
 	api.sendMessage(chatId, `⤴️ ${gate.title}: opening…`)
 		.then((message) => {
-			console.log(`Open command for ${data.groups?.id} #${data.groups?.phoneNumberIndex} (${phoneNumber}) got from ${message.chat.id}.`);
+			console.log(`${lid}: Open command for ${gate.id} #${phoneNumberIndex} (${phoneNumber}) got from ${message.from?.username}`);
 
 			return (
 				modem.send({
@@ -63,7 +66,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					terminator: 'OK',
 				})
 					.then((response) => {
-						console.log('atz', response);
+						console.log(`${lid}: Modem reset`, response.trim());
 						return message;
 					})
 			);
@@ -80,7 +83,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 							terminator: 'OK',
 						})
 							.then((response) => {
-								console.log('at+flcass', response);
+								console.log(`${lid}: Modem set to voice mode`, response.trim());
 								return message;
 							})
 					);
@@ -93,7 +96,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					terminator: 'OK',
 				})
 					.then((response) => {
-						console.log('atl', response);
+						console.log(`${lid}: Modem set to volume level 1`, response);
 						return message;
 					})
 			);
@@ -104,7 +107,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					message: 'ATA',
 				})
 					.then((response) => {
-						console.log('ata', response);
+						console.log(`${lid}: Modem answered to incoming call (if any)`, response);
 						return message;
 					})
 			);
@@ -116,26 +119,8 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 					terminator: 'OK',
 				})
 					.then((response) => {
-						console.log('ath', response);
+						console.log(`${lid}: Modem hang up incoming call`, response);
 						return message;
-					})
-			);
-		})
-		.then((message) => {
-			return (
-				api.editMessageText(`🆓 ${gate.title}: line is free, ready to call to ${phoneNumber}…`, {
-					chat_id: message.chat.id,
-					message_id: message.message_id,
-				})
-					.then(() => {
-						return modem.send({
-							message: 'ATL3',
-							terminator: 'OK',
-						})
-							.then((response) => {
-								console.log('atl', response);
-								return message;
-							})
 					})
 			);
 		})
@@ -152,7 +137,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 								terminator: 'BUSY',
 							})
 								.then((response) => {
-									console.log('atdt', response);
+									console.log(`${lid}: Modem called to ${gate.id} / ${phoneNumber}`, response);
 									return message;
 								})
 						)

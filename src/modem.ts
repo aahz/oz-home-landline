@@ -120,7 +120,7 @@ export class Modem {
 		return port;
 	}
 
-	public send(packet: {message: string, terminator?: string}): Promise<string> {
+	public send(packet: {message: string, terminator?: string | RegExp | {resolve: (string | RegExp), reject: (string | RegExp)}}): Promise<string> {
 		if (!this.$status.isOpen) {
 			return Promise.reject(new Error('No open connection'));
 		}
@@ -133,12 +133,12 @@ export class Modem {
 			const data: string[] = [];
 
 			parser.on('data', chunk => {
-				data.push(chunk.trim());
+				chunk = chunk.trim();
 
-				console.info('chunk', data);
+				data.push(chunk);
 
 				if (!!packet.terminator) {
-					if (chunk.trim() !== packet.terminator) {
+					if (chunk !== packet.terminator) {
 						return;
 					}
 
