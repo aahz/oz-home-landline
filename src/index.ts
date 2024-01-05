@@ -145,7 +145,7 @@ function openGate(api: Bot['api'], chatId: number, command: string): void {
 			)
 		})
 		.then((message) => {
-			api.editMessageText(`🆗 ${gate.title} is open!`, {
+			api.editMessageText(`🆗 ${gate.title}: open`, {
 				chat_id: message.chat.id,
 				message_id: message.message_id,
 			});
