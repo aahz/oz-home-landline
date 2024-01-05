@@ -125,43 +125,61 @@ export class Modem {
 			return Promise.reject(new Error('No open connection'));
 		}
 
-		return new Promise((resolve, reject) => {
-			const parser = new ReadlineParser({
-				delimiter: this.$parameters.eol,
-			});
-
-			const data: string[] = [];
-
-			parser.on('data', chunk => {
-				chunk = chunk.trim();
-
-				console.log(packet.message, '->', chunk);
-
-				data.push(chunk);
-
-				if (!!packet.terminator) {
-					if (chunk !== packet.terminator) {
-						return;
-					}
-
-					this.$port?.unpipe(parser);
-					resolve(data.join('\n'));
-				}
-				else {
-					setTimeout(() => {
-						this.$port?.unpipe(parser);
-						resolve(data.join('\n'));
-					}, this.$parameters.timeout);
-				}
-			});
-
-			this.$port?.pipe(parser);
-
-			this.$port.write([packet.message, this.$parameters.eol].join(''), (error) => {
-				if (!!error) {
-					return reject(error);
-				}
-			});
+		const parser = new ReadlineParser({
+			delimiter: this.$parameters.eol,
 		});
+
+		this.$port?.pipe(parser);
+
+		return (
+			new Promise<string>((resolve, reject) => {
+				const data: string[] = [];
+
+				parser.on('data', chunk => {
+					chunk = chunk.trim();
+
+					console.log(packet.message, '->', chunk);
+
+					data.push(chunk);
+
+					if (!!packet.terminator) {
+						if (chunk !== packet.terminator) {
+							return;
+						}
+
+						this.$port.drain((error) => {
+							if (!!error) {
+								return reject(error);
+							}
+
+							resolve(data.join('\n'));
+						});
+					}
+					else {
+						setTimeout(() => {
+							this.$port.drain((error) => {
+								if (!!error) {
+									return reject(error);
+								}
+
+								resolve(data.join('\n'));
+							});
+						}, this.$parameters.timeout);
+					}
+				});
+
+				this.$port.write([packet.message, this.$parameters.eol].join(''), (error) => {
+					if (!!error) {
+						return reject(error);
+					}
+				});
+			})
+		)
+			.then((data) => {
+				this.$port.flush();
+				this.$port.unpipe(parser);
+
+				return(data);
+			});
 	}
 }
