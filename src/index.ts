@@ -10,7 +10,7 @@ const bot = new TelegramBot(C.BOT.TOKEN, {
 const modem = new Modem({
 	path: C.MODEM.PATH,
 	baudRate: C.MODEM.BAUD_RATE,
-	isLogEnabled: false,
+	isLogEnabled: !C.ENV.IS_PRODUCTION,
 	delay: 150,
 });
 
@@ -37,7 +37,13 @@ function sendList(entity: Message | CallbackQuery): void {
 }
 
 function openGate(entity: Message | CallbackQuery): void {
-	const data = C.EXPRESSIONS.COMMAND_GATE_OPEN.exec(String((entity as CallbackQuery).data || (entity as Message).text));
+	const command = String((entity as CallbackQuery).data || (entity as Message).text);
+
+	if (!C.ENV.IS_PRODUCTION) {
+		console.log(`${Date.now()}: processing command "${command}"`);
+	}
+
+	const data = C.EXPRESSIONS.COMMAND_GATE_OPEN.exec(command);
 
 	if (!data) {
 		return sendList(entity);
@@ -47,6 +53,10 @@ function openGate(entity: Message | CallbackQuery): void {
 
 	if (!gate) {
 		return sendList(entity);
+	}
+
+	if (!C.ENV.IS_PRODUCTION) {
+		console.log(`${Date.now()}: Found gate ${gate.id}, requested phone number ${data.groups?.phoneNumberIndex || 0}`)
 	}
 
 	const lid = Date.now();
@@ -180,10 +190,18 @@ bot.on('message', (message) => {
 	}
 
 	if (C.EXPRESSIONS.COMMAND_GATE_OPEN.test(message.text as string)) {
+		if (!C.ENV.IS_PRODUCTION) {
+			console.log(`${Date.now()}: Recognized gate open request`);
+		}
+
 		return openGate(message);
 	}
 
 	if (C.EXPRESSIONS.COMMAND_GATES_LIST.test(message.text as string)) {
+		if (!C.ENV.IS_PRODUCTION) {
+			console.log(`${Date.now()}: Recognized gates list request`);
+		}
+
 		return sendList(message);
 	}
 });
@@ -191,22 +209,33 @@ bot.on('message', (message) => {
 bot.on('callback_query', (query) => {
 	if (!C.BOT.ALLOWED_USER_IDS.includes(query.from?.id as number)) {
 		Promise.all(
-			C.BOT.ALLOWED_USER_IDS.map((userId) => bot.sendMessage(
-				userId,
-				[
-					`Untrusted user ${query.from?.first_name} ${query.from?.last_name} (@${query.from?.username}, \`${query.from?.id}\`) trying to get access to Landline.`,
-					'If you want to authorize this user tell administrator to add this user ID to white list.',
-				].join(' ')
+			C.BOT.ALLOWED_USER_IDS.map((userId) => (
+				bot
+					.sendMessage(
+						userId,
+						[
+							`Untrusted user ${query.from?.first_name} ${query.from?.last_name} (@${query.from?.username}, \`${query.from?.id}\`) trying to get access to Landline.`,
+							'If you want to authorize this user tell administrator to add this user ID to white list.',
+						].join(' ')
+					)
 			))
 		)
-			.then(() => {
-				bot.sendMessage(query?.message?.chat?.id as number, '⛔ Error: Command not found');
+			.finally(() => {
+				bot
+					.sendMessage(
+						query?.message?.chat?.id as number,
+						'⛔ Error: Command not found'
+					);
 			});
 
 		return;
 	}
 
 	if (C.EXPRESSIONS.COMMAND_GATE_OPEN.test(query.data as string)) {
+		if (!C.ENV.IS_PRODUCTION) {
+			console.log(`${Date.now()}: Recognized gate open query`);
+		}
+
 		return openGate(query);
 	}
 });
