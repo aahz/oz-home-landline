@@ -39,7 +39,7 @@ function sendList(entity: Message | CallbackQuery): void {
 function openGate(entity: Message | CallbackQuery): void {
 	const command = String((entity as CallbackQuery).data || (entity as Message).text);
 
-	const data = C.EXPRESSIONS.COMMAND_GATE_OPEN.exec(command);
+	const data = (/^\/gates\s+open\s+(?<id>[-_a-z0-9]+)(?:\s+)?(?<phoneNumberIndex>[0-9]+)?/gi).exec(command);
 
 	if (!C.ENV.IS_PRODUCTION) {
 		console.log(`${Date.now()}: processing command "${command}"`, data);
@@ -189,7 +189,7 @@ bot.on('message', (message) => {
 		return;
 	}
 
-	if (C.EXPRESSIONS.COMMAND_GATE_OPEN.test(message.text as string)) {
+	if ((/^\/gates\s+open\s+(?<id>[-_a-z0-9]+)(?:\s+)?(?<phoneNumberIndex>[0-9]+)?/gi).test(message.text as string)) {
 		if (!C.ENV.IS_PRODUCTION) {
 			console.log(`${Date.now()}: Recognized gate open request`);
 		}
@@ -197,7 +197,7 @@ bot.on('message', (message) => {
 		return openGate(message);
 	}
 
-	if (C.EXPRESSIONS.COMMAND_GATES_LIST.test(message.text as string)) {
+	if ((/^\/(?:start|gates)/gi).test(message.text as string)) {
 		if (!C.ENV.IS_PRODUCTION) {
 			console.log(`${Date.now()}: Recognized gates list request`);
 		}
@@ -231,7 +231,7 @@ bot.on('callback_query', (query) => {
 		return;
 	}
 
-	if (C.EXPRESSIONS.COMMAND_GATE_OPEN.test(query.data as string)) {
+	if ((/^\/gates\s+open\s+(?<id>[-_a-z0-9]+)(?:\s+)?(?<phoneNumberIndex>[0-9]+)?/gi).test(query.data as string)) {
 		if (!C.ENV.IS_PRODUCTION) {
 			console.log(`${Date.now()}: Recognized gate open query`);
 		}
