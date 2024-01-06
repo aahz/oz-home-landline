@@ -39,11 +39,11 @@ function sendList(entity: Message | CallbackQuery): void {
 function openGate(entity: Message | CallbackQuery): void {
 	const command = String((entity as CallbackQuery).data || (entity as Message).text);
 
-	if (!C.ENV.IS_PRODUCTION) {
-		console.log(`${Date.now()}: processing command "${command}"`);
-	}
-
 	const data = C.EXPRESSIONS.COMMAND_GATE_OPEN.exec(command);
+
+	if (!C.ENV.IS_PRODUCTION) {
+		console.log(`${Date.now()}: processing command "${command}"`, data);
+	}
 
 	if (!data) {
 		return sendList(entity);
