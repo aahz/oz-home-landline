@@ -86,15 +86,12 @@ export default class Modem {
 						reject(new Error('Request timed out before a satisfactory answer was given.'));
 					}, timeout);
 
-					this.$port.write([command, this.$parameters.delimiterWrite].join(''));
-
-					this._log(`>> ${command}`);
-
 					this._dataHandler = (chunk: string) => {
 						response.push(chunk);
 
 						if (terminators.some((terminator) => chunk.includes(terminator))) {
 							this._log(`<< ${chunk}`);
+
 							this._dataHandler = this._fallbackHandler;
 
 							clearTimeout(errorTimeout);
@@ -110,6 +107,10 @@ export default class Modem {
 							this._log(chunk);
 						}
 					}
+
+					this.$port.write([command, this.$parameters.delimiterWrite].join(''));
+
+					this._log(`>> ${command}`);
 				}))
 		);
 	}
