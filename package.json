@@ -12,9 +12,10 @@
   "author": "Andrei Ozdon <aahzzyy@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@westh/serial-commander": "1.2.2",
+    "@serialport/parser-readline": "12.0.0",
     "lodash": "4.17.21",
-    "node-telegram-bot-api": "0.63.0"
+    "node-telegram-bot-api": "0.63.0",
+    "serialport": "12.0.0"
   },
   "devDependencies": {
     "@types/lodash": "4.14.202",

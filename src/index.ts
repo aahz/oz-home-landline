@@ -1,6 +1,5 @@
-// @ts-ignore
-import SerialCommander from '@westh/serial-commander';
 import TelegramBot, {CallbackQuery, Message} from 'node-telegram-bot-api';
+import Modem from './modem';
 
 import * as C from './constants';
 
@@ -8,14 +7,11 @@ const bot = new TelegramBot(C.BOT.TOKEN, {
 	polling: true,
 });
 
-const modem = new SerialCommander({
-	port: C.MODEM.PATH,
-	baudrate: C.MODEM.BAUD_RATE,
-	readDelimiter: '\r\n',
-	writeDelimiter: '\r\n',
-	disableLog: false,
-	defaultDelay: 100,
-	log: (string: string): void => console.log(`==== MODEM =============> | ${string}`),
+const modem = new Modem({
+	path: C.MODEM.PATH,
+	baudRate: C.MODEM.BAUD_RATE,
+	isLogEnabled: false,
+	delay: 150,
 });
 
 function sendList(entity: Message | CallbackQuery): void {
@@ -64,10 +60,10 @@ function openGate(entity: Message | CallbackQuery): void {
 
 			return (
 				modem.send('ATZ', {
-					expectedResponses: ['OK'],
+					terminators: ['OK'],
 				})
-					.then((response: string) => {
-						console.log(`${lid}: Modem reset`, response.trim().replace(/\r?\n/, ' -> '));
+					.then(({response}) => {
+						console.log(`${lid}: Modem reset`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -81,10 +77,10 @@ function openGate(entity: Message | CallbackQuery): void {
 				.then(() => {
 					return (
 						modem.send('AT+FCLASS=8', {
-							expectedResponses: ['OK'],
+							terminators: ['OK'],
 						})
-							.then((response: string) => {
-								console.log(`${lid}: Modem set to voice mode`, response.trim().replace(/\r?\n/, ' -> '));
+							.then(({response}) => {
+								console.log(`${lid}: Modem set to voice mode`, response.map(chunk => chunk.trim()).join(' -> '));
 
 								return message;
 							})
@@ -94,10 +90,10 @@ function openGate(entity: Message | CallbackQuery): void {
 		.then((message) => {
 			return (
 				modem.send( 'ATL1', {
-					expectedResponses: ['OK'],
+					terminators: ['OK'],
 				})
-					.then((response: string) => {
-						console.log(`${lid}: Modem set to volume level 1`, response.trim().replace(/\r?\n/, ' -> '));
+					.then(({response}) => {
+						console.log(`${lid}: Modem set to volume level 1`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -106,10 +102,10 @@ function openGate(entity: Message | CallbackQuery): void {
 		.then((message) => {
 			return (
 				modem.send('ATA', {
-					expectedResponses: ['ATA', 'OK'],
+					terminators: ['ATA', 'OK'],
 				})
-					.then((response: string) => {
-						console.log(`${lid}: Modem answered to incoming call (if any)`, response.trim().replace(/\r?\n/, ' -> '));
+					.then(({response}) => {
+						console.log(`${lid}: Modem answered to incoming call (if any)`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -118,10 +114,10 @@ function openGate(entity: Message | CallbackQuery): void {
 		.then((message) => {
 			return (
 				modem.send('ATH', {
-					expectedResponses: ['OK'],
+					terminators: ['OK'],
 				})
-					.then((response: string) => {
-						console.log(`${lid}: Modem hang up incoming call`, response.trim().replace(/\r?\n/, ' -> '));
+					.then(({response}) => {
+						console.log(`${lid}: Modem hang up incoming call`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -136,11 +132,11 @@ function openGate(entity: Message | CallbackQuery): void {
 					.then(() => {
 						return (
 							modem.send(`ATm1x3DT${phoneNumber}`, {
-								expectedResponses: ['BUSY'],
+								terminators: ['BUSY'],
 								timeout: 10000,
 							})
-								.then((response: string) => {
-									console.log(`${lid}: Modem called to ${gate.id} / ${phoneNumber}`, response.trim().replace(/\r?\n/, ' -> '));
+								.then(({response}) => {
+									console.log(`${lid}: Modem called to ${gate.id} / ${phoneNumber}`, response.map(chunk => chunk.trim()).join(' -> '));
 
 									return message;
 								})
