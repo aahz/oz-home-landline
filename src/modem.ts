@@ -70,7 +70,7 @@ export default class Modem {
 		this.$parameters.log(chunk);
 	}
 
-	public async send(command: string, {terminators = ['OK'], timeout = 1000, delay = this.$parameters.delay} = {}): Promise<IModemResponse> {
+	public async send(command: string, {terminators = ['OK'], timeout = 10000, delay = this.$parameters.delay} = {}): Promise<IModemResponse> {
 		return (
 			(
 				new Promise((resolve) => {

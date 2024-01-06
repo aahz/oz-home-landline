@@ -143,7 +143,7 @@ function openGate(entity: Message | CallbackQuery): void {
 						return (
 							modem.send(`ATm1x3DT${phoneNumber}`, {
 								terminators: ['BUSY'],
-								timeout: 10000,
+								timeout: 30000,
 							})
 								.then(({response}) => {
 									console.log(`${lid}: Modem called to ${gate.id} / ${phoneNumber}`, response.map(chunk => chunk.trim()).join(' -> '));
