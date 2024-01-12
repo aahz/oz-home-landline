@@ -179,7 +179,7 @@ export default class Modem {
 								timeStart: timeStart,
 								timeEnd: new Date(),
 							});
-						});
+						}, timeout);
 					}),
 				]))
 				.finally(() => {
