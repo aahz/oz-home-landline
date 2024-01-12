@@ -1,5 +1,4 @@
 import {SerialPort, ReadlineParser} from 'serialport';
-import {delay} from "lodash";
 
 export interface IModemParameters {
 	path: string;
@@ -117,11 +116,6 @@ export default class Modem {
 					})
 				}))
 				.then(() => new Promise<void>((resolve, reject) => {
-					this.$port.drain((error) => {
-						(!error ? resolve() : reject(new Error(['Drain operation failed.', error.message || error.toString()].join(' '))));
-					});
-				}))
-				.then(() => new Promise<void>((resolve, reject) => {
 					this.$port.flush((error) => {
 						(!error ? resolve() : reject(new Error(['Flush operation failed.', error.message || error.toString()].join(' '))));
 					});
@@ -148,6 +142,10 @@ export default class Modem {
 							this.$port.write(command, (error) => {
 								this._log(['>>>', command.trim()].join(' '));
 								(!!error && reject(new Error(['Write operation failed.', error.message || error.toString()].join(' '))));
+							});
+
+							this.$port.drain((error) => {
+								(!!error && reject(new Error(['Drain operation failed.', error.message || error.toString()].join(' '))));
 							});
 						})
 							.then((response) => {
