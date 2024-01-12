@@ -10,8 +10,8 @@ const bot = new TelegramBot(C.BOT.TOKEN, {
 const modem = new Modem({
 	path: C.MODEM.PATH,
 	baudRate: C.MODEM.BAUD_RATE,
-	isLogEnabled: !C.ENV.IS_PRODUCTION,
-	delay: 150,
+	isLogEnabled: true,
+	delay: 200,
 });
 
 function sendList(entity: Message | CallbackQuery): void {
@@ -42,7 +42,7 @@ function openGate(entity: Message | CallbackQuery): void {
 	const data = (/^\/gates\s+open\s+(?<id>[-_a-z0-9]+)(?:\s+)?(?<phoneNumberIndex>[0-9]+)?/gi).exec(command);
 
 	if (!C.ENV.IS_PRODUCTION) {
-		console.log(`${Date.now()}: processing command "${command}"`, data);
+		console.log(`${Date.now()}: processing command "${command}"`);
 	}
 
 	if (!data) {
@@ -66,8 +66,11 @@ function openGate(entity: Message | CallbackQuery): void {
 
 	bot.sendMessage(entity.from?.id as number, `⌛ ${gate.title}: opening…`)
 		.then((message) => {
-			console.log(`${lid}: Open command for ${gate.id} #${phoneNumberIndex} (${phoneNumber}) got from ${message.from?.username}`);
+			console.log(`${lid}: Open command for ${gate.id} #${phoneNumberIndex} (${phoneNumber}) got from ${entity.from?.username}`);
 
+			return message;
+		})
+		.then((message) => {
 			return (
 				modem.send({
 					command: 'ATZ',
@@ -102,11 +105,11 @@ function openGate(entity: Message | CallbackQuery): void {
 		.then((message) => {
 			return (
 				modem.send( {
-					command: 'ATL1',
+					command: 'ATL0',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
-						console.log(`${lid}: Modem set to volume level 1`, response.map(chunk => chunk.trim()).join(' -> '));
+						console.log(`${lid}: Modem set to volume level 0`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -133,6 +136,19 @@ function openGate(entity: Message | CallbackQuery): void {
 				})
 					.then(({response}) => {
 						console.log(`${lid}: Modem hang up incoming call`, response.map(chunk => chunk.trim()).join(' -> '));
+
+						return message;
+					})
+			);
+		})
+		.then((message) => {
+			return (
+				modem.send( {
+					command: 'ATL3',
+					terminators: ['OK'],
+				})
+					.then(({response}) => {
+						console.log(`${lid}: Modem set to volume level 3`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
