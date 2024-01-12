@@ -100,7 +100,7 @@ export default class Modem {
 		});
 
 		const timeStart = new Date();
-		let timeoutId: number | undefined;
+		let timeoutId: NodeJS.Timeout | number | undefined;
 
 		return (
 			new Promise((resolve => setTimeout(resolve, delay)))
@@ -162,7 +162,7 @@ export default class Modem {
 					),
 					new Promise<IModemResponse>((resolve, reject) => {
 						timeoutId = setTimeout(() => {
-							clearTimeout(timeoutId);
+							clearTimeout(timeoutId as number);
 							timeoutId = undefined;
 
 							if (!request?.isValidTimeout) {
@@ -186,7 +186,7 @@ export default class Modem {
 				]))
 				.finally(() => {
 					if (!!timeoutId) {
-						clearTimeout(timeoutId);
+						clearTimeout(timeoutId as number);
 					}
 
 					this.$port
