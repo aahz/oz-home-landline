@@ -69,7 +69,8 @@ function openGate(entity: Message | CallbackQuery): void {
 			console.log(`${lid}: Open command for ${gate.id} #${phoneNumberIndex} (${phoneNumber}) got from ${message.from?.username}`);
 
 			return (
-				modem.send('ATZ', {
+				modem.send({
+					command: 'ATZ',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
@@ -86,7 +87,8 @@ function openGate(entity: Message | CallbackQuery): void {
 			})
 				.then(() => {
 					return (
-						modem.send('AT+FCLASS=8', {
+						modem.send({
+							command: 'AT+FCLASS=8',
 							terminators: ['OK'],
 						})
 							.then(({response}) => {
@@ -99,7 +101,8 @@ function openGate(entity: Message | CallbackQuery): void {
 		})
 		.then((message) => {
 			return (
-				modem.send( 'ATL1', {
+				modem.send( {
+					command: 'ATL1',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
@@ -111,7 +114,8 @@ function openGate(entity: Message | CallbackQuery): void {
 		})
 		.then((message) => {
 			return (
-				modem.send('ATA', {
+				modem.send({
+					command: 'ATA',
 					terminators: ['ATA', 'OK'],
 				})
 					.then(({response}) => {
@@ -123,7 +127,8 @@ function openGate(entity: Message | CallbackQuery): void {
 		})
 		.then((message) => {
 			return (
-				modem.send('ATH', {
+				modem.send({
+					command: 'ATH',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
@@ -141,7 +146,8 @@ function openGate(entity: Message | CallbackQuery): void {
 				})
 					.then(() => {
 						return (
-							modem.send(`ATm1x3DT${phoneNumber}`, {
+							modem.send({
+								command: `ATm1x3DT${phoneNumber}`,
 								terminators: ['BUSY'],
 								timeout: 30000,
 							})
