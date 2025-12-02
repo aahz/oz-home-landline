@@ -21,7 +21,7 @@ function sendList(entity: Message | CallbackQuery): void {
 				inline_keyboard: C.GATES.LIST.reduce((result, gate) => ([
 					...result,
 					gate.phoneNumbers.map((phoneNumber, index) => ({
-						text: `${gate.title}: ${phoneNumber.slice}`,
+						text: `${gate.title} ${phoneNumber}`,
 						callback_data: `/gates open ${gate.id} ${index}`,
 					})),
 				]), [] as {text: string; callback_data: string}[][]),
