@@ -21,7 +21,7 @@ function sendList(entity: Message | CallbackQuery): void {
 				inline_keyboard: C.GATES.LIST.reduce((result, gate) => ([
 					...result,
 					gate.phoneNumbers.map((phoneNumber, index) => ({
-						text: `${gate.title} (${phoneNumber})`,
+						text: `${gate.title}: ${phoneNumber.slice}`,
 						callback_data: `/gates open ${gate.id} ${index}`,
 					})),
 				]), [] as {text: string; callback_data: string}[][]),
@@ -230,23 +230,19 @@ bot.on('message', (message) => {
 
 bot.on('callback_query', (query) => {
 	if (!C.BOT.ALLOWED_USER_IDS.includes(query.from?.id as number)) {
-		Promise.all(
-			C.BOT.ALLOWED_USER_IDS.map((userId) => (
-				bot
-					.sendMessage(
-						userId,
-						[
-							`Untrusted user ${query.from?.first_name} ${query.from?.last_name} (@${query.from?.username}, \`${query.from?.id}\`) trying to get access to Landline.`,
-							'If you want to authorize this user tell administrator to add this user ID to white list.',
-						].join(' ')
-					)
-			))
-		)
+		bot
+			.sendMessage(
+				C.BOT.ALLOWED_USER_IDS[0],
+				[
+					`Untrusted user ${query.from?.first_name} ${query.from?.last_name} (@${query.from?.username}, \`${query.from?.id}\`) trying to get access to Landline.`,
+					'If you want to authorize this user tell administrator to add this user ID to white list.',
+				].join(' ')
+			)
 			.finally(() => {
 				bot
 					.sendMessage(
 						query?.message?.chat?.id as number,
-						'⛔ Error: Command not found'
+						'Error: [500] Internal server error'
 					);
 			});
 
