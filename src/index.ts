@@ -164,7 +164,7 @@ function openGate(entity: Message | CallbackQuery): void {
 						return (
 							modem.send({
 								command: `ATm1x3DT${phoneNumber}`,
-								terminators: ['BUSY'],
+								terminators: ['CONNECT', 'NO CARRIER', 'BUSY', 'OK'],
 								timeout: 30000,
 							})
 								.then(({response}) => {
@@ -175,6 +175,15 @@ function openGate(entity: Message | CallbackQuery): void {
 						)
 					})
 			)
+		})
+		.then((message) => {
+			modem.send({
+				command: 'ATH',
+				terminators: ['OK'],
+			})
+				.then(() => {
+					return message;
+				})
 		})
 		.then((message) => {
 			bot.editMessageText(`👍 ${gate.title}: open`, {
