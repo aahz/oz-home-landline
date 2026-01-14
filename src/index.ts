@@ -177,13 +177,13 @@ function openGate(entity: Message | CallbackQuery): void {
 			)
 		})
 		.then((message) => {
-			modem.send({
+			return modem.send({
 				command: 'ATH',
 				terminators: ['OK'],
 			})
 				.then(() => {
 					return message;
-				})
+				});
 		})
 		.then((message) => {
 			bot.editMessageText(`👍 ${gate.title}: open`, {
