@@ -1,10 +1,19 @@
 import TelegramBot, {CallbackQuery, Message} from 'node-telegram-bot-api';
+// @ts-ignore
+import {SocksProxyAgent} from 'socks-proxy-agent';
 import Modem from './modem';
 
 import * as C from './constants';
 
+const agentURL = `socks5://${encodeURIComponent(C.BOT.PROXY_USER)}:${encodeURIComponent(C.BOT.PROXY_PSWD)}@${C.BOT.PROXY_HOST}:${C.BOT.PROXY_PORT}`;
+const agent = new SocksProxyAgent(agentURL);
+
 const bot = new TelegramBot(C.BOT.TOKEN, {
 	polling: true,
+	// @ts-ignore
+	request: {
+		agent: agent,
+	}
 });
 
 const modem = new Modem({
