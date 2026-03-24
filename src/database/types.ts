@@ -68,6 +68,7 @@ export interface IModemSerialTransportState {
 	failureCount: number;
 	windowStartAt?: Date;
 	fallbackPrimarySince?: Date;
+	fallbackForcedUntil?: Date;
 }
 
 export interface IModemSerialFailureRecordResult {

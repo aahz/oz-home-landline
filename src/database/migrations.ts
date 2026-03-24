@@ -53,6 +53,7 @@ export function createTables(db: Database.Database): void {
 			failure_count INTEGER NOT NULL DEFAULT 0,
 			window_start_at TEXT NULL,
 			fallback_primary_since TEXT NULL,
+			fallback_forced_until TEXT NULL,
 			updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
 	`);
@@ -91,10 +92,23 @@ export function seedModemTransportState(db: Database.Database): void {
 	db
 		.prepare(`
 			INSERT OR IGNORE INTO modem_transport_state (
-				id, failure_count, window_start_at, fallback_primary_since, updated_at
-			) VALUES (1, 0, NULL, NULL, CURRENT_TIMESTAMP)
+				id, failure_count, window_start_at, fallback_primary_since, fallback_forced_until, updated_at
+			) VALUES (1, 0, NULL, NULL, NULL, CURRENT_TIMESTAMP)
 		`)
 		.run();
+}
+
+export function migrateModemTransportState(db: Database.Database): void {
+	const columns = db
+		.prepare('PRAGMA table_info(modem_transport_state)')
+		.all() as {name: string}[];
+
+	if (!columns.some((column) => column.name === 'fallback_forced_until')) {
+		db.exec(`
+			ALTER TABLE modem_transport_state
+			ADD COLUMN fallback_forced_until TEXT NULL
+		`);
+	}
 }
 
 export function migrateGroupsModel(db: Database.Database): void {

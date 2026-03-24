@@ -7,6 +7,7 @@ import {isAdminUser, isAllowedUser, notifyUntrustedCallback, notifyUntrustedMess
 import {handleAdminCommandMessage, processAdminFlowCallback, processAdminFlowText, CALLBACK_FORM_PREFIX, sendAdminError} from './commands/admin';
 import {COMMAND_OPEN_GATE_REGEXP, openGate, sendGatesList} from './commands/gates';
 import {COMMAND_CALL_REGEXP, handleCall} from './commands/call';
+import {handleModeCommandMessage, processModeCallback} from './commands/mode';
 
 const bot = new TelegramBot(C.BOT.TOKEN, {
 	polling: true,
@@ -85,6 +86,10 @@ bot.on('message', (message) => {
 		return handleCall(context, message);
 	}
 
+	if (handleModeCommandMessage(context, message)) {
+		return;
+	}
+
 	if ((/^\/(?:start|gates)/gi).test(message.text as string)) {
 		if (!C.ENV.IS_PRODUCTION) {
 			console.log(`${Date.now()}: Recognized gates list request`);
@@ -115,6 +120,10 @@ bot.on('callback_query', (query) => {
 	if (!isAllowedUser(context, query.from?.id)) {
 		notifyUntrustedCallback(context, query);
 
+		return;
+	}
+
+	if (processModeCallback(context, query)) {
 		return;
 	}
 
