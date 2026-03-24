@@ -13,11 +13,13 @@
   "license": "ISC",
   "dependencies": {
     "@serialport/parser-readline": "12.0.0",
+    "better-sqlite3": "11.8.1",
     "lodash": "4.17.21",
     "node-telegram-bot-api": "0.63.0",
     "serialport": "12.0.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
     "@types/lodash": "4.14.202",
     "@types/node-telegram-bot-api": "0.64.2",
     "nodemon": "3.0.2",

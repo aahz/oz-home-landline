@@ -15,4 +15,5 @@ services:
     volumes:
       - ./src:/home/node/app/src
       - ./nodemon.json:/home/node/app/nodemon.json
+      - ./storage:/data
     command: npm run dev

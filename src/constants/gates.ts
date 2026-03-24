@@ -1,7 +1,16 @@
 import {getEnv} from "../utility";
 
+interface ListItem {
+	id: string;
+	title: string;
+	group: string;
+	phoneNumbers: string[];
+}
+
+export const RAW_LIST = String(getEnv('GATES_LIST', ''));
+
 export const LIST = (
-	String(getEnv('GATES_LIST', ''))
+	RAW_LIST
 		.split(';')
 		.map((entry) => {
 			return (
@@ -23,11 +32,18 @@ export const LIST = (
 							};
 						}
 
+						if (index === 2) {
+							return {
+								...result,
+								group: entry,
+							}
+						}
+
 						return {
 							...result,
 							phoneNumbers: [...result.phoneNumbers, entry],
 						};
-					}, {id: '', title: '', phoneNumbers: []} as {id: string, title: string; phoneNumbers: string[]})
+					}, {id: '', title: '', group: 'unknown', phoneNumbers: []} as ListItem)
 			);
 		})
 );
