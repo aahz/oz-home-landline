@@ -88,7 +88,7 @@ export function executeDialSequence(context: IAppContext, parameters: IExecuteDi
 			return (
 				context.modem.send({
 					command: 'ATA',
-					terminators: ['ATA', 'OK'],
+					terminators: ['VCON', 'ATA', 'OK'],
 				})
 					.then(({response}) => {
 						console.log(`${lid}: Modem answered to incoming call (if any)`, response.map(chunk => chunk.trim()).join(' -> '));
@@ -113,7 +113,7 @@ export function executeDialSequence(context: IAppContext, parameters: IExecuteDi
 		.then((message) => {
 			return (
 				context.modem.send( {
-					command: 'ATL3',
+					command: 'ATL5',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
