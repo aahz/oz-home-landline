@@ -50,37 +50,50 @@ export function sendGatesList(context: IAppContext, entity: Message | CallbackQu
 		return;
 	}
 
-	context.bot
-		.sendMessage(chatId, '🚧 List of available gates:', {
-			reply_markup: {
-					inline_keyboard: Array.from(
-						gates.reduce((result, gate) => {
-							const group = gate.group.id || '*';
-							const groupName = gate.group.name || 'All groups';
-							const groupKey = `${group}|${groupName}`;
+	const groups = Array.from(
+		gates.reduce((result, gate) => {
+			const key = gate.group.id || '*';
+			const name = gate.group.name || 'All groups';
 
-							if (!result.has(groupKey)) {
-								result.set(groupKey, []);
-							}
-
-							result.get(groupKey)?.push(gate);
-
-							return result;
-						}, new Map<string, typeof gates>())
-					).reduce((result, [groupKey, groupGates]) => ([
-						...result,
-						...groupGates.map((gate) => gate.phoneNumbers.map((phoneNumber, index) => ({
-							text: `[${groupKey.split('|')[1]}] ${gate.title} ${phoneNumber}`,
-							callback_data: `/gates open ${gate.id} ${index}`,
-						}))),
-					]), [] as {text: string; callback_data: string}[][]),
-				is_persistent: true,
+			if (!result.has(key)) {
+				result.set(key, {
+					name,
+					gates: [],
+				});
 			}
+
+			result.get(key)?.gates.push(gate);
+
+			return result;
+		}, new Map<string, {name: string; gates: typeof gates}>())
+	);
+
+	let sendQueue = Promise.resolve();
+
+	groups.forEach(([, group]) => {
+		sendQueue = sendQueue
+			.then(() => {
+				return context.bot.sendMessage(chatId, `🚧 ${group.name}:`, {
+					reply_markup: {
+						inline_keyboard: group.gates.reduce((rows, gate) => ([
+							...rows,
+							...gate.phoneNumbers.map((phoneNumber, index) => ([{
+								text: `${gate.title} ${phoneNumber}`,
+								callback_data: `/gates open ${gate.id} ${index}`,
+							}])),
+						]), [] as {text: string; callback_data: string}[][]),
+						is_persistent: true,
+					},
+				});
+			})
+			.then(() => undefined);
+	});
+
+	sendQueue
+		.then(() => {
+			console.log(`${Date.now()}: Grouped list sent to ${chatId}`);
 		})
-		.then((message) => {
-			console.log(`${Date.now()}: List sent to ${message.chat.id}`);
-		})
-		.catch((error) => {
+		.catch((error: any) => {
 			console.error(error);
 		});
 }
