@@ -113,11 +113,11 @@ export function executeDialSequence(context: IAppContext, parameters: IExecuteDi
 		.then((message) => {
 			return (
 				context.modem.send( {
-					command: 'ATL5',
+					command: 'ATL2',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
-						console.log(`${lid}: Modem set to volume level 3`, response.map(chunk => chunk.trim()).join(' -> '));
+						console.log(`${lid}: Modem set to volume level 2`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
@@ -134,7 +134,7 @@ export function executeDialSequence(context: IAppContext, parameters: IExecuteDi
 							context.modem.send({
 								command: `ATm1x3DT${parameters.dialTarget}`,
 								terminators: ['CONNECT', 'NO CARRIER', 'BUSY', 'OK'],
-								timeout: 30000,
+								timeout: 90000,
 							})
 								.then(({response}) => {
 									console.log(`${lid}: Modem called to ${parameters.logTarget}`, response.map(chunk => chunk.trim()).join(' -> '));
