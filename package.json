@@ -12,20 +12,19 @@
   "author": "Andrei Ozdon <aahzzyy@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@serialport/parser-readline": "12.0.0",
-    "axios": "^1.13.6",
+    "@serialport/parser-readline": "13.0.0",
+    "axios": "1.13.6",
     "better-sqlite3": "11.8.1",
-    "lodash": "4.17.21",
-    "node-telegram-bot-api": "0.63.0",
-    "serialport": "12.0.0",
-    "socks-proxy-agent": "9.0.0"
+    "lodash": "4.17.23",
+    "node-telegram-bot-api": "0.67.0",
+    "serialport": "13.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.13",
-    "@types/lodash": "4.14.202",
-    "@types/node-telegram-bot-api": "0.64.2",
-    "nodemon": "3.0.2",
+    "@types/lodash": "4.17.24",
+    "@types/node-telegram-bot-api": "0.64.14",
+    "nodemon": "3.1.14",
     "ts-node": "10.9.2",
-    "typescript": "4.9.5"
+    "typescript": "6.0.2"
   }
 }
