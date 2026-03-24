@@ -1,6 +1,6 @@
 import {getEnv} from "../utility";
 
-export const TOKEN = String(getEnv('BOT_TOKEN', '')); // TODO: Remove default
+export const TOKEN = String(getEnv('BOT_TOKEN', ''));
 
 const ADMIN_USER_ID_RAW = String(getEnv('BOT_ADMIN_USER_ID', '')).trim();
 export const ADMIN_USER_ID = (
