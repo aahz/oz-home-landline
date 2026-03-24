@@ -68,7 +68,7 @@ export default class Modem {
 	private static readonly FALLBACK_ACQUIRE_TIMEOUT_MS = 60000;
 	private static readonly FALLBACK_SEND_MAX_RETRIES = 3;
 	private static readonly FALLBACK_SEND_TIMEOUT_MIN_MS = 1;
-	private static readonly FALLBACK_SEND_TIMEOUT_MAX_MS = 60000;
+	private static readonly FALLBACK_SEND_TIMEOUT_MAX_MS = 120000;
 
 	protected readonly $port: SerialPort;
 
