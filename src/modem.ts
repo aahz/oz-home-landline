@@ -152,10 +152,14 @@ export default class Modem {
 	}
 
 	private _createApiClient(): AxiosInstance | null {
-		const baseURL = String(this.$parameters.api?.basePath || '').trim().replace(/\/+$/, '');
+		const baseURL = this._normalizeApiBaseUrl(this.$parameters.api?.basePath);
 		const token = String(this.$parameters.api?.token || '').trim();
 
 		if (!baseURL || !token) {
+			if (!baseURL && String(this.$parameters.api?.basePath || '').trim().length > 0) {
+				this._log(`Fallback API is disabled: invalid MODEM_FALLBACK_API_PATH "${String(this.$parameters.api?.basePath || '').trim()}"`);
+			}
+
 			return null;
 		}
 
@@ -167,6 +171,26 @@ export default class Modem {
 				'Content-Type': 'application/json',
 			},
 		});
+	}
+
+	private _normalizeApiBaseUrl(rawBasePath?: string): string | null {
+		const raw = String(rawBasePath || '').trim();
+
+		if (!raw) {
+			return null;
+		}
+
+		const withProtocol = (/^https?:\/\//i).test(raw)
+			? raw
+			: `https://${raw.replace(/^\/+/, '')}`;
+
+		try {
+			const parsed = new URL(withProtocol);
+
+			return parsed.toString().replace(/\/+$/, '');
+		} catch (_error: any) {
+			return null;
+		}
 	}
 
 	private _isFallbackPrimaryEnabled(): boolean {
