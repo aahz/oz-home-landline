@@ -38,6 +38,7 @@ export interface IModemTransportState {
 	failureCount: number;
 	windowStartAt?: Date;
 	fallbackPrimarySince?: Date;
+	fallbackForcedUntil?: Date;
 }
 
 export interface IModemTransportStateStore {
@@ -66,6 +67,8 @@ export default class Modem {
 
 	private static readonly FALLBACK_ACQUIRE_TIMEOUT_MS = 60000;
 	private static readonly FALLBACK_SEND_MAX_RETRIES = 3;
+	private static readonly FALLBACK_SEND_TIMEOUT_MIN_MS = 1;
+	private static readonly FALLBACK_SEND_TIMEOUT_MAX_MS = 60000;
 
 	protected readonly $port: SerialPort;
 
@@ -227,7 +230,15 @@ export default class Modem {
 		const timeout = Number.isFinite(request?.timeout) && request?.timeout as number >= 0
 			? request?.timeout as number
 			: this.$parameters.timeout;
+		const normalizedTimeout = Math.max(
+			Modem.FALLBACK_SEND_TIMEOUT_MIN_MS,
+			Math.min(timeout, Modem.FALLBACK_SEND_TIMEOUT_MAX_MS)
+		);
 		const timeStart = new Date();
+
+		if (normalizedTimeout !== timeout) {
+			this._log(`Fallback timeout normalized from ${timeout} to ${normalizedTimeout} ms`);
+		}
 
 		let isTimedOut = false;
 		let responseText = '';
@@ -243,9 +254,9 @@ export default class Modem {
 				try {
 					const response = await this.$api.post('/at/send', {
 						command,
-						timeoutMs: timeout,
+						timeoutMs: normalizedTimeout,
 					}, {
-						timeout: timeout + 1000,
+						timeout: normalizedTimeout + 1000,
 					});
 
 					responseText = String(response?.data?.response || '').trim();
@@ -323,7 +334,10 @@ export default class Modem {
 		if (axios.isAxiosError(error)) {
 			const axiosError = error as AxiosError<{error?: string; details?: string}>;
 			const data = axiosError.response?.data;
-			const details = [data?.error, data?.details].filter(Boolean).join(' ');
+			const details = [data?.error, data?.details]
+				.filter(Boolean)
+				.map((chunk) => typeof chunk === 'string' ? chunk : JSON.stringify(chunk))
+				.join(' ');
 
 			return new Error([
 				prefix,
