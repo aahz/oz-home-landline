@@ -55,7 +55,7 @@ export default class Modem {
 		timeout: 10000,
 		delay: 100,
 		isLogEnabled: true,
-		log: (chunk: string): void => console.log(`MODEM: ${chunk}`),
+		log: (chunk: string): void => console.log(`MODEM ${Date.now()}: ${chunk}`),
 		api: {
 			basePath: '',
 			token: '',

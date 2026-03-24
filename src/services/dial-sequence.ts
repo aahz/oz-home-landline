@@ -113,11 +113,11 @@ export function executeDialSequence(context: IAppContext, parameters: IExecuteDi
 		.then((message) => {
 			return (
 				context.modem.send( {
-					command: 'ATL2',
+					command: 'ATL3',
 					terminators: ['OK'],
 				})
 					.then(({response}) => {
-						console.log(`${lid}: Modem set to volume level 2`, response.map(chunk => chunk.trim()).join(' -> '));
+						console.log(`${lid}: Modem set to volume level 3`, response.map(chunk => chunk.trim()).join(' -> '));
 
 						return message;
 					})
