@@ -77,10 +77,10 @@ export function sendGatesList(context: IAppContext, entity: Message | CallbackQu
 					reply_markup: {
 						inline_keyboard: group.gates.reduce((rows, gate) => ([
 							...rows,
-							...gate.phoneNumbers.map((phoneNumber, index) => ([{
+							gate.phoneNumbers.map((phoneNumber, index) => ({
 								text: `${gate.title} ${phoneNumber}`,
 								callback_data: `/gates open ${gate.id} ${index}`,
-							}])),
+							})),
 						]), [] as {text: string; callback_data: string}[][]),
 						is_persistent: true,
 					},
