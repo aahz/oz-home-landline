@@ -26,6 +26,26 @@ const modem = new Modem({
 	baudRate: C.MODEM.BAUD_RATE,
 	isLogEnabled: true,
 	delay: 200,
+	api: {
+		basePath: C.MODEM.FALLBACK_API_PATH,
+		token: C.MODEM.FALLBACK_API_TOKEN,
+	},
+	transportStateStore: database,
+	onFallbackPrimaryEnabled: () => {
+		const admins = database.getNotifiableAdmins();
+
+		Promise.all(
+			admins.map((admin) => bot.sendMessage(
+				admin.telegramId,
+				[
+					'⚠️ Serial modem transport is unstable.',
+					'Fallback HTTP API is switched to primary mode after 10 failures in 24 hours.',
+				].join('\n')
+			))
+		).catch((error) => {
+			console.error(error);
+		});
+	},
 });
 
 const context: IAppContext = {

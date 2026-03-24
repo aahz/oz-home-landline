@@ -6,6 +6,8 @@ import {
 	IGate,
 	IGroup,
 	ILandlineDatabaseParameters,
+	IModemSerialFailureRecordResult,
+	IModemSerialTransportState,
 	ISeedParameters,
 	IUpsertGateInput,
 	IUpsertGroupInput,
@@ -13,12 +15,14 @@ import {
 	IUser,
 	IUserRow,
 } from './types';
-import {createTables, migrateGroupsModel, migrateUsersTable, seedDefaultGroups} from './migrations';
+import {createTables, migrateGroupsModel, migrateUsersTable, seedDefaultGroups, seedModemTransportState} from './migrations';
 import {ensureGroupsExist, normalizeGroupIds, parseGatesRaw} from './utils';
 
 export default class LandlineDatabase {
 	private readonly _db: Database.Database;
 	private static readonly DEFAULT_GATE_GROUP_ID = 'default';
+	private static readonly MODEM_SERIAL_FAILURE_THRESHOLD = 10;
+	private static readonly MODEM_SERIAL_FAILURE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 	public constructor(parameters: ILandlineDatabaseParameters) {
 		const directoryPath = path.dirname(parameters.path);
@@ -34,8 +38,105 @@ export default class LandlineDatabase {
 		migrateUsersTable(this._db);
 		migrateGroupsModel(this._db);
 		seedDefaultGroups(this._db);
+		seedModemTransportState(this._db);
 		this._seedAdmin(seed.adminUserId);
 		this._seedGates(seed.gatesRawList);
+	}
+
+	public getModemSerialTransportState(now: Date = new Date()): IModemSerialTransportState {
+		this._ensureModemTransportStateRow();
+
+		const row = this._db
+			.prepare(`
+				SELECT
+					failure_count AS failureCount,
+					window_start_at AS windowStartAt,
+					fallback_primary_since AS fallbackPrimarySince
+				FROM modem_transport_state
+				WHERE id = 1
+				LIMIT 1
+			`)
+			.get() as {failureCount: number; windowStartAt: string | null; fallbackPrimarySince: string | null};
+
+		const state = this._mapModemTransportStateRow(row);
+		const shouldResetByWindow = !!state.windowStartAt
+			&& (now.getTime() - state.windowStartAt.getTime()) > LandlineDatabase.MODEM_SERIAL_FAILURE_WINDOW_MS;
+		const shouldResetByFallbackWindow = !!state.fallbackPrimarySince
+			&& (now.getTime() - state.fallbackPrimarySince.getTime()) > LandlineDatabase.MODEM_SERIAL_FAILURE_WINDOW_MS;
+
+		if (!shouldResetByWindow && !shouldResetByFallbackWindow) {
+			return state;
+		}
+
+		this.resetModemSerialFailures();
+
+		return {
+			failureCount: 0,
+		};
+	}
+
+	public recordModemSerialFailure(now: Date = new Date()): IModemSerialFailureRecordResult {
+		const state = this.getModemSerialTransportState(now);
+		const shouldStartNewWindow = !state.windowStartAt
+			|| (now.getTime() - state.windowStartAt.getTime()) > LandlineDatabase.MODEM_SERIAL_FAILURE_WINDOW_MS;
+
+		const nextFailureCount = shouldStartNewWindow
+			? 1
+			: state.failureCount + 1;
+		const nextWindowStartAt = shouldStartNewWindow
+			? now
+			: (state.windowStartAt as Date);
+		let nextFallbackPrimarySince = state.fallbackPrimarySince;
+		let isPromoted = false;
+
+		if (
+			nextFailureCount >= LandlineDatabase.MODEM_SERIAL_FAILURE_THRESHOLD
+			&& !nextFallbackPrimarySince
+		) {
+			nextFallbackPrimarySince = now;
+			isPromoted = true;
+		}
+
+		this._db
+			.prepare(`
+				UPDATE modem_transport_state
+				SET
+					failure_count = @failureCount,
+					window_start_at = @windowStartAt,
+					fallback_primary_since = @fallbackPrimarySince,
+					updated_at = CURRENT_TIMESTAMP
+				WHERE id = 1
+			`)
+			.run({
+				failureCount: nextFailureCount,
+				windowStartAt: nextWindowStartAt.toISOString(),
+				fallbackPrimarySince: nextFallbackPrimarySince?.toISOString() || null,
+			});
+
+		return {
+			state: {
+				failureCount: nextFailureCount,
+				windowStartAt: nextWindowStartAt,
+				fallbackPrimarySince: nextFallbackPrimarySince,
+			},
+			isPromoted,
+		};
+	}
+
+	public resetModemSerialFailures(): void {
+		this._ensureModemTransportStateRow();
+
+		this._db
+			.prepare(`
+				UPDATE modem_transport_state
+				SET
+					failure_count = 0,
+					window_start_at = NULL,
+					fallback_primary_since = NULL,
+					updated_at = CURRENT_TIMESTAMP
+				WHERE id = 1
+			`)
+			.run();
 	}
 
 	public hasUser(telegramId: number): boolean {
@@ -515,6 +616,18 @@ export default class LandlineDatabase {
 			accessLevel: row.accessLevel,
 			isNotifications: Boolean(row.isNotifications),
 			groups,
+		};
+	}
+
+	private _ensureModemTransportStateRow(): void {
+		seedModemTransportState(this._db);
+	}
+
+	private _mapModemTransportStateRow(row: {failureCount: number; windowStartAt: string | null; fallbackPrimarySince: string | null}): IModemSerialTransportState {
+		return {
+			failureCount: Number.isFinite(row.failureCount) ? row.failureCount : 0,
+			windowStartAt: row.windowStartAt ? new Date(row.windowStartAt) : undefined,
+			fallbackPrimarySince: row.fallbackPrimarySince ? new Date(row.fallbackPrimarySince) : undefined,
 		};
 	}
 }

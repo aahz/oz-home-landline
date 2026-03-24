@@ -47,6 +47,14 @@ export function createTables(db: Database.Database): void {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 		);
+
+		CREATE TABLE IF NOT EXISTS modem_transport_state (
+			id INTEGER PRIMARY KEY CHECK (id = 1),
+			failure_count INTEGER NOT NULL DEFAULT 0,
+			window_start_at TEXT NULL,
+			fallback_primary_since TEXT NULL,
+			updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
 	`);
 }
 
@@ -75,6 +83,16 @@ export function seedDefaultGroups(db: Database.Database): void {
 		.prepare(`
 			INSERT OR IGNORE INTO groups (id, name)
 			VALUES ('default', 'Default')
+		`)
+		.run();
+}
+
+export function seedModemTransportState(db: Database.Database): void {
+	db
+		.prepare(`
+			INSERT OR IGNORE INTO modem_transport_state (
+				id, failure_count, window_start_at, fallback_primary_since, updated_at
+			) VALUES (1, 0, NULL, NULL, CURRENT_TIMESTAMP)
 		`)
 		.run();
 }

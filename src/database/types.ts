@@ -63,3 +63,14 @@ export interface IUserRow {
 	accessLevel: AccessLevel;
 	isNotifications: number;
 }
+
+export interface IModemSerialTransportState {
+	failureCount: number;
+	windowStartAt?: Date;
+	fallbackPrimarySince?: Date;
+}
+
+export interface IModemSerialFailureRecordResult {
+	state: IModemSerialTransportState;
+	isPromoted: boolean;
+}

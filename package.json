@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@serialport/parser-readline": "12.0.0",
+    "axios": "^1.13.6",
     "better-sqlite3": "11.8.1",
     "lodash": "4.17.21",
     "node-telegram-bot-api": "0.63.0",
